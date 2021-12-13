@@ -1,16 +1,28 @@
 ﻿using System.IO;
 using System.Linq;
 
-int? prev = null;
-int count = 0;
-List<int> input = File.ReadAllLines("input.txt").Select(t => int.Parse(t)).ToList();
+int horizontal = 0;
+int depth = 0;
+int aim = 0;
+List<(string Instruction, int Value)> instructions = File.ReadAllLines("input.txt").Select(x => (x.Split()[0], int.Parse(x.Split()[1]))).ToList();
 
-for (int i = 0; i < input.Count; i++) 
+foreach (var entry in instructions) 
 {
-    int sum = input.Skip(i).Take(3).Sum();
-    if (prev.HasValue && sum > prev) count++;
-    prev = sum;
+    switch (entry.Instruction)
+    {
+        case "forward":
+            horizontal+=entry.Value;
+            depth += aim*entry.Value;
+            break;
+        case "down":
+            aim += entry.Value;
+            break;
+        case "up":
+            aim -= entry.Value;
+            break;
+    }
 }
 
-File.WriteAllText("output.txt", count.ToString());
-Console.WriteLine(count);
+int result = horizontal * depth;
+File.WriteAllText("output.txt", result.ToString());
+Console.WriteLine(result);

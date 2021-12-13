@@ -1,21 +1,16 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 
-int count = 0;
 int? prev = null;
-List<int> values = File.ReadAllLines("input.txt").Select(t => int.Parse(t)).ToList();
-List<string> output = new List<string>();
+int count = 0;
+List<int> input = File.ReadAllLines("input.txt").Select(t => int.Parse(t)).ToList();
 
-foreach (var value in values) {
-    if (prev == null)
-    {
-        prev = value;
-    }
-    else
-    {
-        if (value > prev) count++;
-    }
-
-    prev = value;
+for (int i = 0; i < input.Count; i++) 
+{
+    int sum = input.Skip(i).Take(3).Sum();
+    if (prev.HasValue && sum > prev) count++;
+    prev = sum;
 }
 
 File.WriteAllText("output.txt", count.ToString());
+Console.WriteLine(count);
