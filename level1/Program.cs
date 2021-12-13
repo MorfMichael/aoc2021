@@ -18,4 +18,4 @@ foreach (var value in values) {
     prev = value;
 }
 
-Console.WriteLine(count);
+File.WriteAllText("output.txt", count.ToString());
