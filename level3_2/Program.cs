@@ -26,10 +26,12 @@ while (co2_list.Length > 1)
     i++;
 }
 
-Console.WriteLine($"oxygen: {oxygen} {Convert.ToInt32(oxygen,2)}");
-Console.WriteLine($"co2: {co2} {Convert.ToInt32(co2,2)}");
+string a = oxygen_list[0], b = co2_list[0];
 
-int result = Convert.ToInt32(oxygen,2) * Convert.ToInt32(co2,2);
+Console.WriteLine($"oxygen: {a} {Convert.ToInt32(a,2)}");
+Console.WriteLine($"co2: {b} {Convert.ToInt32(b,2)}");
+
+int result = Convert.ToInt32(a,2) * Convert.ToInt32(b,2);
 
 File.WriteAllText("output.txt", result.ToString());
 
