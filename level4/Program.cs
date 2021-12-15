@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Linq;
 
 (int, int)? CheckValue(int[,] board, int value)
 {
@@ -49,6 +50,8 @@ ConcurrentDictionary<int, List<(int, int)>> result = new ConcurrentDictionary<in
 int sum = 0;
 int num = 0;
 
+List<int> hugo = new List<int>();
+
 foreach (var number in numbers)
 {
     foreach (var board in boards)
@@ -61,24 +64,42 @@ foreach (var number in numbers)
         }
     }
 
-    int win =
-        result.Where(x => x.Value.GroupBy(t => t.Item1).Any(t => t.Count() == 5) || 
-        x.Value.GroupBy(t => t.Item2).Any(t => t.Count() == 5)).Select(t => t.Key).FirstOrDefault();
-    if (win > 0)
+    var wins = result.Where(x => x.Value.GroupBy(t => t.Item1).Any(t => t.Count() == 5) || x.Value.GroupBy(t => t.Item2).Any(t => t.Count() == 5)).Select(t => t.Key).ToList();
+    if (wins.Any())
     {
-        for (int i = 0; i < 5; i++)
+        foreach (var win in wins)
         {
-            for (int j = 0; j < 5; j++)
-            {
-                if (!result[win].Contains((i, j))) 
-                    sum += boards[win][i, j];
-            }
-        }
+            Console.WriteLine(number);
+            Console.WriteLine(win);
 
-        num = number;
-        break;
+            sum = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    if (result[win].Contains((i, j))) Console.ForegroundColor = ConsoleColor.Green;
+
+                    Console.Write(boards[win][i, j].ToString().PadLeft(3, ' '));
+
+                    Console.ResetColor();
+
+                    if (!result[win].Contains((i, j)))
+                        sum += boards[win][i, j];
+                    else
+                    {
+
+                    }
+                }
+                Console.WriteLine();
+            }
+
+            num = number;
+            hugo.Add(num * sum);
+
+            boards.Remove(win);
+            result.Remove(win, out var bla);
+        }
     }
 }
 
 Console.WriteLine(num * sum);
-
