@@ -11,15 +11,19 @@ var data = input.Select(t =>
     return new { Start = row[0], End = row[1] };
 }).ToList();
 
-//int width = data.Max(x => x.Start.X > x.End.X ? x.Start.X : x.End.X);
-//int height = data.Max(y => y.Start.Y > y.End.Y ? y.Start.Y : y.End.Y);
-
 List<(int X, int Y)> result = new List<(int X, int Y)>();
 
 foreach (var entry in data)
 {
+    if (entry.Start.X != entry.End.X || entry.Start.Y != entry.End.Y)
+        continue;
 
+    if (entry.Start.X == entry.End.X)
+    {
+        
+    }
+    else if (entry.Start.Y == entry.End.Y)
+    {
+
+    }
 }
-
-
-int x = 1;
