@@ -15,26 +15,30 @@ List<(int X, int Y)> result = new List<(int X, int Y)>();
 
 foreach (var entry in data)
 {
-    if (!(entry.Start.X == entry.End.X || entry.Start.Y == entry.End.Y))
-        continue;
-
     if (entry.Start.X == entry.End.X)
     {
-        int min = Min(entry.Start.Y, entry.End.Y);
-        int max = Max(entry.Start.Y, entry.End.Y);
+        var (min, max) = MinMax(entry.Start.Y, entry.End.Y);
         for (int i = min; i <= max; i++)
         {
             result.Add((entry.Start.X, i));
         }
     }
-   
-    if (entry.Start.Y == entry.End.Y)
+    else if (entry.Start.Y == entry.End.Y)
     {
-        int min = Min(entry.Start.X, entry.End.X);
-        int max = Max(entry.Start.X, entry.End.X);
+        var (min, max) = MinMax(entry.Start.X, entry.End.X);
         for (int i = min; i <= max; i++)
         {
             result.Add((i, entry.Start.Y));
+        }
+    }
+    else if (Math.Abs(entry.Start.X - entry.End.X) == Math.Abs(entry.Start.Y - entry.End.Y))
+    {
+        int count = Math.Abs(entry.Start.X - entry.End.X);
+        for (int i = 0; i <= count; i++)
+        {
+            int x = entry.Start.X + (entry.Start.X < entry.End.X ? i : -i);
+            int y = entry.Start.Y + (entry.Start.Y < entry.End.Y ? i : -i);
+            result.Add((x, y));
         }
     }
 }
@@ -44,5 +48,4 @@ File.WriteAllText("output.txt", output.ToString());
 Console.WriteLine(output);
 
 
-int Min(int a, int b) => a < b ? a : b;
-int Max(int a, int b) => a > b ? a : b;
+(int Min, int Max) MinMax(int a, int b) => a < b ? (Min: a, Max: b) : (Min: b, Max: a);
