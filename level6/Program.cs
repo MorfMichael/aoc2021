@@ -2,20 +2,28 @@
 List<int> fishies = input.Split(",").Select(t => int.Parse(t)).ToList();
 int days = 256;
 
-for (int day = 0; day < days; day++)
+long sum = fishies.Sum(x => Calculate(x, days));
+Console.WriteLine(sum);
+
+long Calculate(int start, int days)
 {
-    for (int i = 0; i < fishies.Count; i++)
+    long result = 0;
+
+    for (int i = 0; i < days; i++)
     {
-        if (fishies[i] > 0)
+        if (start > 0)
         {
-            fishies[i]--;
+            start--;
         }
         else
         {
-            fishies[i] = 6;
-            fishies.Add(9);
+            start = 6;
+            result++;
+            result += Calculate(8, days - i - 1);
         }
     }
+
+    return result;
 }
 
 Console.WriteLine(fishies.Count);
