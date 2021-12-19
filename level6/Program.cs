@@ -1,29 +1,26 @@
-﻿string input = File.ReadAllText("input.txt");
-List<int> fishies = input.Split(",").Select(t => int.Parse(t)).ToList();
+﻿//string input = File.ReadAllText("input.txt");
+//List<int> fishis = input.Split(",").Select(t => int.Parse(t)).ToList();
+
 int days = 256;
 
-long sum = fishies.Sum(x => Calculate(x, days));
-Console.WriteLine(sum);
+List<int> fishis = new List<int> { 3, 4, 3, 1, 2 };
 
-long Calculate(int start, int days)
+for (int day = 1; day <= days; day++)
 {
-    long result = 0;
-
-    for (int i = 0; i < days; i++)
+    int before = fishis.Count;
+    for (int i = 0; i < fishis.Count; i++)
     {
-        if (start > 0)
+        if (fishis[i] > 0)
         {
-            start--;
+            fishis[i]--;
         }
         else
         {
-            start = 6;
-            result++;
-            result += Calculate(8, days - i - 1);
+            fishis[i] = 6;
+            fishis.Add(9);
         }
     }
 
-    return result;
+    Console.WriteLine($"day {day.ToString().PadLeft(3)}: fishies ({before}) and babies ({fishis.Count - before}) results a totoal of {fishis.Count}");
 }
-
-Console.WriteLine(fishies.Count);
+Console.WriteLine($"There will be {fishis.Count} fishies after {days} days!");
