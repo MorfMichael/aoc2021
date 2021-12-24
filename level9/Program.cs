@@ -1,24 +1,37 @@
 ﻿string[] lines = File.ReadAllLines("input.txt");
 //string[] lines = File.ReadAllLines("example.txt");
 
-List<Point> map = lines.SelectMany((line,y) => line.Select((cell,x) => new Point(x,y,int.Parse(cell.ToString()), line.Length, lines.Length))).ToList();
+List<Point> map = lines.SelectMany((line, y) => line.Select((cell, x) => new Point(x, y, int.Parse(cell.ToString()), line.Length, lines.Length))).ToList();
 
-List<int> lowest = new List<int>();
-
+List<int> basins = new List<int>();
 foreach (var point in map)
 {
-    var neighbours = point.GetNeighbours().Select(t => map.FirstOrDefault(x => x.X == t.X && x.Y == t.Y)).ToList();
+    var neighbours = point.GetNeighbours(map).ToList();
 
     if (neighbours.All(x => x.Value > point.Value))
     {
-        lowest.Add(point.Value);
+        List<Point> basin = new List<Point> { point };
+        Recursion(point, map, basin);
+        basins.Add(basin.Count);
     }
 }
 
-int sum = map.Where(t => t.GetNeighbours().Select(x => map.FirstOrDefault(m => m.X == x.X && m.Y == x.Y)?.Value).All(x => t.Value < x.Value)).Sum(x => 1 + x.Value);
-
+int sum = basins.OrderByDescending(x => x).Take(3).Aggregate(1, (a, b) => a * b);
 Console.WriteLine(sum);
 
+void Recursion(Point point, List<Point> map, List<Point> basins)
+{
+    var neighbours = point.GetNeighbours(map);
+
+    foreach (var neighbour in neighbours)
+    {
+        if (neighbour.Value > point.Value && neighbour.Value != 9 && !basins.Contains(neighbour))
+        {
+            basins.Add(neighbour);
+            Recursion(neighbour, map, basins);
+        }
+    }
+}
 
 class Point
 {
@@ -41,7 +54,13 @@ class Point
 
     public List<(int X, int Y)> GetNeighbours()
     {
-        List<(int X, int Y)> neighbours = new List<(int X, int Y)> { (X-1, Y), (X+1, Y), (X, Y-1), (X, Y+1) };
+        List<(int X, int Y)> neighbours = new List<(int X, int Y)> { (X - 1, Y), (X + 1, Y), (X, Y - 1), (X, Y + 1) };
         return neighbours.Where(t => t.X >= 0 && t.X < _width && t.Y >= 0 && t.Y < _height).ToList();
+    }
+
+    public List<Point> GetNeighbours(List<Point> map)
+    {
+        List<(int X, int Y)> neighbours = new List<(int X, int Y)> { (X - 1, Y), (X + 1, Y), (X, Y - 1), (X, Y + 1) };
+        return neighbours.Where(t => t.X >= 0 && t.X < _width && t.Y >= 0 && t.Y < _height).Select(t => map.FirstOrDefault(x => x.X == t.X && x.Y == t.Y)).ToList();
     }
 }
