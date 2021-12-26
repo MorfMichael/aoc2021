@@ -20,15 +20,15 @@ foreach (var line in lines)
 
 Console.WriteLine(string.Join(Environment.NewLine, caves.Select(cave => $"{cave.Key} [{string.Join(",", cave.Value)}]")));
 
-Queue<(string, List<string>)> q = new Queue<(string, List<string>)>();
-q.Enqueue(("start", new List<string> { "start" }));
+Stack<(string, List<string>, string?)> q = new Stack<(string, List<string>, string?)>();
+q.Push(("start", new List<string> { "start" }, null));
 
 int count = 0;
 
 while (q.Any())
 {
-    var (pos, small) = q.Dequeue();
-    Console.WriteLine($"{pos}, {string.Join(",", small)}");
+    var (pos, small, twice) = q.Pop();
+    //Console.WriteLine($"{pos}, {string.Join(",", small)}");
 
     if (pos == "end")
     {
@@ -46,7 +46,11 @@ while (q.Any())
                 new_small.Add(entry);
             }
 
-            q.Enqueue((entry, new_small));
+            q.Push((entry, new_small, twice));
+        }
+        else if (small.Contains(entry) && twice == null && !new[] { "start", "end" }.Contains(entry))
+        {
+            q.Push((entry, small, entry));
         }
     }
 }
