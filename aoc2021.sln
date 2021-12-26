@@ -21,11 +21,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "level7", "level7\level7.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "level8", "level8\level8.csproj", "{283BD8EA-03FF-431B-A3A3-E1930EE1A618}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "level9", "level9\level9.csproj", "{7E6CC130-7B3D-4BD4-BA2F-8ED3315318E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "level9", "level9\level9.csproj", "{7E6CC130-7B3D-4BD4-BA2F-8ED3315318E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "level10", "level10\level10.csproj", "{8DC15F45-1947-4C59-A62F-9BBEBA7237CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "level10", "level10\level10.csproj", "{8DC15F45-1947-4C59-A62F-9BBEBA7237CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "level11", "level11\level11.csproj", "{3072E5E9-FFB3-4805-95E4-21675F1BBDE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "level11", "level11\level11.csproj", "{3072E5E9-FFB3-4805-95E4-21675F1BBDE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "level12", "level12\level12.csproj", "{C8581DFD-525A-439B-941C-628ADED83DDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,10 @@ Global
 		{3072E5E9-FFB3-4805-95E4-21675F1BBDE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3072E5E9-FFB3-4805-95E4-21675F1BBDE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3072E5E9-FFB3-4805-95E4-21675F1BBDE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8581DFD-525A-439B-941C-628ADED83DDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8581DFD-525A-439B-941C-628ADED83DDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8581DFD-525A-439B-941C-628ADED83DDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8581DFD-525A-439B-941C-628ADED83DDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
