@@ -1,10 +1,9 @@
 ﻿using System.Collections.Concurrent;
 
-string file = "example.txt";
-
-string[] s_e = new[] { "start", "end" };
+//string file = "example.txt";
+string file = "input.txt";
 string[] lines = File.ReadAllLines(file);
-ConcurrentDictionary<string, List<string>> caves = new ConcurrentDictionary<string, List<string>>();
+Dictionary<string, List<string>> caves = new Dictionary<string, List<string>>();
 
 foreach (var line in lines)
 {
@@ -12,51 +11,47 @@ foreach (var line in lines)
     var left = split[0];
     var right = split[1];
 
-    if (!s_e.Contains(right))
+    if (caves.ContainsKey(left)) caves[left].Add(right);
+    else caves[left] = new List<string> { right };
+
+    if (caves.ContainsKey(right)) caves[right].Add(left);
+    else caves[right] = new List<string> { left };
+}
+
+Console.WriteLine(string.Join(Environment.NewLine, caves.Select(cave => $"{cave.Key} [{string.Join(",", cave.Value)}]")));
+
+Queue<(string, List<string>)> q = new Queue<(string, List<string>)>();
+q.Enqueue(("start", new List<string> { "start" }));
+
+int count = 0;
+
+while (q.Any())
+{
+    var (pos, small) = q.Dequeue();
+    Console.WriteLine($"{pos}, {string.Join(",", small)}");
+
+    if (pos == "end")
     {
-        caves.AddOrUpdate(left, new List<string> { right }, (key, list) =>
-        {
-            if (!list.Contains(right))
-                list.Add(right);
-            return list.OrderBy(t => t).ToList();
-        });
+        count++;
+        continue;
     }
 
-    if (!s_e.Contains(left))
+    foreach (var entry in caves[pos])
     {
-        caves.AddOrUpdate(right, new List<string> { left }, (key, list) =>
+        if (!small.Contains(entry))
         {
-            if (!list.Contains(left))
-                list.Add(left);
-            return list.OrderBy(t => t).ToList();
-        });
+            var new_small = small.Distinct().ToList();
+            if (entry.ToLower() == entry)
+            {
+                new_small.Add(entry);
+            }
+
+            q.Enqueue((entry, new_small));
+        }
     }
 }
 
-foreach (var cave in caves.Where(x => !s_e.Contains(x.Key)).OrderBy(t => t.Key))
-{
-    Console.WriteLine($"{cave.Key} [{string.Join(",", cave.Value)}]");
-}
-
-while ()
-{
-    string? cur = caves["start"].FirstOrDefault();
-    List<string> ignore = new List<string>();
-    List<string> path = new List<string>();
-
-    while (cur != null)
-    {
-        Console.WriteLine(cur + ": " + string.Join(",", caves[cur].Where(t => !ignore.Contains(t))));
-
-        path.Add(cur);
-
-        if (cur != null && cur.All(char.IsLower))
-            ignore.Add(cur);
-
-        cur = caves[cur].FirstOrDefault(x => !ignore.Contains(x));
-    }
-
-    Console.WriteLine(string.Join(",", path));
+Console.WriteLine(count);
 
 void PrintCaves()
 {
