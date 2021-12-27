@@ -1,5 +1,5 @@
-﻿//string[] lines = File.ReadAllLines("example.txt");
-string[] lines = File.ReadAllLines("input.txt");
+﻿string[] lines = File.ReadAllLines("example.txt");
+//string[] lines = File.ReadAllLines("input.txt");
 
 string template = lines.First();
 Dictionary<char, ulong> result = template.GroupBy(t => t).ToDictionary(t => t.Key, t => (ulong)t.Count());
@@ -17,7 +17,7 @@ for (int step = 0; step < 40; step++)
         var rule = rules[pair.Key];
 
         if (result.ContainsKey(rule[0][1]))
-            result[rule[0][1]]+= pair.Value;
+            result[rule[0][1]] += pair.Value;
         else
             result[rule[0][1]] = pair.Value;
 
