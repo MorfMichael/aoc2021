@@ -18,12 +18,12 @@ foreach (var signal in signals)
     string seven = signal.Input.First(x => x.Length == 3);
     string eight = signal.Input.First(x => x.Length == 7);
 
-    string nine = signal.Input.First(x => x.Length == 6 && four.All(f => x.Contains(f)) && seven.All(s => x.Contains(s)));
-    string zero = signal.Input.First(x => x.Length == 6 && seven.All(s => x.Contains(s)) && !nine.Contains(x));
-    string three = signal.Input.First(x => x.Length == 5 && seven.All(s => x.Contains(s)));
-    string five = signal.Input.First(x => x.Length == 5 && x.All(f => nine.Contains(f)) && x != three);
-    string six = signal.Input.First(x => x.Length == 6 && x != nine && x != zero);
-    string two = signal.Input.First(x => x.Length == 5 && x != three && x != five);
+    string nine = signal.Input.Single(x => x.Length == 6 && four.All(f => x.Contains(f)) && seven.All(s => x.Contains(s)));
+    string zero = signal.Input.Single(x => x.Length == 6 && seven.All(s => x.Contains(s)) && !nine.Contains(x));
+    string three = signal.Input.Single(x => x.Length == 5 && seven.All(s => x.Contains(s)));
+    string five = signal.Input.Single(x => x.Length == 5 && x.All(f => nine.Contains(f)) && x != three);
+    string six = signal.Input.Single(x => x.Length == 6 && x != nine && x != zero);
+    string two = signal.Input.Single(x => x.Length == 5 && x != three && x != five);
 
     digits.Add(zero, "0");
     digits.Add(one, "1");
