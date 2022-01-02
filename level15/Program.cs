@@ -1,78 +1,33 @@
 ﻿//string[] lines = File.ReadAllLines("example.txt");
 string[] lines = File.ReadAllLines("input.txt");
 
-List<Point> map = lines.SelectMany((t, y) => t.Select((d, x) => new Point(x, y, int.Parse(d.ToString())))).ToList();
+int[][] map = lines.Select(t => t.Select(d => int.Parse(d.ToString())).ToArray()).ToArray();
 
-Point current = map.First();
-Point end = map.Last();
+List<(int X, int Y, int Cost)> costs = new List<(int X, int Y, int Cost)> { (0, 0, 0) };
+List<(int X, int Y)> visited = new List<(int X, int Y)>();
 
-List<Point> watched = new List<Point>();
-List<(Point Point, int Cost)> check = new List<(Point, int)> { (current, 0) };
+(int X, int Y, int Cost) cur = costs.First();
 
-(Point Point, int Cost) entry = check.First();
-
-while (check.Any())
+while (costs.Any())
 {
-    entry = check.OrderBy(t => t.Cost).First();
-    check.Remove(entry);
+    cur = costs.OrderBy(t => t.Cost).First();
+    costs.Remove(cur);
 
-    if (watched.Contains(entry.Point))
-        continue;
+    if (visited.Contains((cur.X, cur.Y))) continue;
+    visited.Add((cur.X, cur.Y));
 
-    if (entry.Point == end)
+    if (cur.Y == map.Length - 1 && cur.X == map[0].Length - 1) break;
+
+    foreach ((int x, int y) in new[] { (0, 1), (0, -1), (1, 0), (-1, 0) })
     {
-        break;
-    }
+        int X = cur.X + x;
+        int Y = cur.Y + y;
 
-    watched.Add(entry.Point);
+        if (!(0 <= X && X < map[0].Length && 0 <= Y && Y < map.Length)) continue;
 
-    var neighbours = map.Where(x => entry.Point.IsNeighbour(x)).ToList();
-
-    foreach (var neighbour in neighbours)
-    {
-        check.Add((neighbour, entry.Cost + neighbour.Value));
+        costs.Add((X, Y, cur.Cost + map[Y][X]));
     }
 }
 
-Console.WriteLine(entry.Point);
-Console.WriteLine(entry.Cost);
-
-void PrintMap(List<Point> map, List<Point> path)
-{
-    List<List<Point>> grouped = map.GroupBy(t => t.Y).Select(t => t.ToList()).ToList();
-
-    foreach (var row in grouped)
-    {
-        foreach (var point in row)
-        {
-            if (path.Contains(point))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-            }
-
-            Console.Write(point.Value);
-            Console.ForegroundColor = ConsoleColor.White;
-        }
-        Console.WriteLine();
-    }
-}
-
-class Point
-{
-    public Point(int x, int y, int value)
-    {
-        X = x;
-        Y = y;
-        Value = value;
-    }
-
-    public int X { get; set; }
-    public int Y { get; set; }
-    public int Value { get; set; }
-
-    public int Distance(Point point) => Math.Abs(point.Y - Y) + Math.Abs(point.X - X);
-
-    public bool IsNeighbour(Point point) => (point.X == X && (point.Y == Y - 1 || point.Y == Y + 1)) || (point.Y == Y && (point.X == X - 1 || point.X == X + 1));
-
-    public override string ToString() => $"{X};{Y};{Value}";
-}
+Console.WriteLine($"{cur.X},{cur.Y}");
+Console.WriteLine(cur.Cost);
