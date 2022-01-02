@@ -6,7 +6,7 @@ int[][] map = lines.Select(t => t.Select(d => int.Parse(d.ToString())).ToArray()
 List<(int X, int Y, int Cost)> costs = new List<(int X, int Y, int Cost)> { (0, 0, 0) };
 List<(int X, int Y)> visited = new List<(int X, int Y)>();
 
-(int X, int Y, int Cost) cur = costs.First();
+var cur = costs.First();
 
 while (costs.Any())
 {
