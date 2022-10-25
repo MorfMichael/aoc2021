@@ -1,4 +1,4 @@
-﻿using level18;
+using level18;
 
 string input = "[[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]";
 Node node = Node.Parse(input);
