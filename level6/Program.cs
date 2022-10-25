@@ -1,9 +1,9 @@
-﻿//string input = File.ReadAllText("input.txt");
-//List<int> fishis = input.Split(",").Select(t => int.Parse(t)).ToList();
+﻿string input = File.ReadAllText("input.txt");
+List<int> fishis = input.Split(",").Select(t => int.Parse(t)).ToList();
 
-int days = 256;
+int days = 80;
 
-List<int> fishis = new List<int> { 3, 4, 3, 1, 2 };
+//List<int> fishis = new List<int> { 3, 4, 3, 1, 2 };
 
 for (int day = 1; day <= days; day++)
 {
