@@ -108,9 +108,9 @@ namespace level18
             if (ToExplode && Type == NodeType.Node) yield return (this, EXPLODE);
             if (ToSplit && Type == NodeType.Value) yield return (this, SPLIT);
 
-            var left = Left?.GetActions();
-            var right = Right?.GetActions();
-            foreach (var action in left?.Concat(right ?? Enumerable.Empty<(Node,string)>()) ?? Enumerable.Empty<(Node,string)>()) yield return action;
+            var left = Left?.GetActions() ?? Enumerable.Empty<(Node,string)>();
+            var right = Right?.GetActions() ?? Enumerable.Empty<(Node, string)>();
+            foreach (var action in left.Concat(right)) yield return action;
         }
 
         private void Split()
@@ -119,8 +119,8 @@ namespace level18
 
             int left = Value.Value / 2;
             int right = (int)((Value.Value / 2d) + .5);
-            Left = new Node { Value = left, Parent = Parent, Type = NodeType.Value };
-            Right = new Node { Value = right, Parent = Parent, Type = NodeType.Value };
+            Left = new Node { Value = left, Parent = this, Type = NodeType.Value };
+            Right = new Node { Value = right, Parent = this, Type = NodeType.Value };
 
             Value = null;
             Type = NodeType.Node;
