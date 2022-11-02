@@ -1,10 +1,16 @@
 using level18;
 
-string input = "[[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]";
-Node node = Node.Parse(input);
-Console.WriteLine(node);
+string input = @"[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]";
 
-Node a = Node.Parse("[1,2]");
-Node b = Node.Parse("[[3,4],5]");
-Node result = a.Add(b);
-result.Print();
+List<Node> nodes = input.Split(Environment.NewLine).Select(Node.Parse).ToList();
+
+Node result = nodes[0];
+
+foreach (var node in nodes.Skip(1))
+{
+    result = Node.Add(result, node);
+    result.Reduce();
+    Console.WriteLine(result);
+}
+
