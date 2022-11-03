@@ -89,7 +89,7 @@ namespace level18
             }
         }
 
-        public void Reduce()
+        public void Reduce(bool log = true)
         {
             var source = GetActions().Select((p,i) => new { Node = p.Node, Action = p.Action, Index = i }).ToList();
             var actions = new Stack<(Node Node,string Action)>(source.OrderBy(t => t.Action == EXPLODE ? 1 : 2).ThenBy(t => t.Index).Select(t => (t.Node,t.Action)).Reverse());
@@ -100,7 +100,7 @@ namespace level18
                 string messsage = $"after {action} {node}: ";
                 if (action == EXPLODE) node.Explode();
                 else if (action == SPLIT) node.Split();
-                Console.WriteLine(messsage + this);
+                if (log) Console.WriteLine(messsage + this);
                 source = GetActions().Select((p, i) => new { Node = p.Node, Action = p.Action, Index = i }).ToList();
                 actions = new Stack<(Node Node, string Action)>(source.OrderBy(t => t.Action == EXPLODE ? 1 : 2).ThenBy(t => t.Index).Select(t => (t.Node, t.Action)).Reverse());
             }
