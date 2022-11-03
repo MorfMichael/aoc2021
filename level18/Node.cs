@@ -91,15 +91,18 @@ namespace level18
 
         public void Reduce()
         {
-            var actions = new Stack<(Node Node,string Action)>(GetActions().Reverse());
+            var source = GetActions().Select((p,i) => new { Node = p.Node, Action = p.Action, Index = i }).ToList();
+            var actions = new Stack<(Node Node,string Action)>(source.OrderBy(t => t.Action == EXPLODE ? 1 : 2).ThenBy(t => t.Index).Select(t => (t.Node,t.Action)).Reverse());
 
             while (actions.Any())
             {
                 (Node node, string action) = actions.Pop();
+                string messsage = $"after {action} {node}: ";
                 if (action == EXPLODE) node.Explode();
                 else if (action == SPLIT) node.Split();
-                Console.WriteLine($"after {action}: {this}");
-                actions = new Stack<(Node Node, string Action)>(GetActions().Reverse());
+                Console.WriteLine(messsage + this);
+                source = GetActions().Select((p, i) => new { Node = p.Node, Action = p.Action, Index = i }).ToList();
+                actions = new Stack<(Node Node, string Action)>(source.OrderBy(t => t.Action == EXPLODE ? 1 : 2).ThenBy(t => t.Index).Select(t => (t.Node, t.Action)).Reverse());
             }
         }
 
