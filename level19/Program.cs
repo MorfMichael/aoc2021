@@ -11,5 +11,31 @@ foreach (var scanner in scanners)
     scanner.PrintDistances();
 }
 
-var same = scanners[0].Distances.Where(t => scanners.Skip(1).Any(x => x.Distances.Any(d => d.distance == t.distance))).ToList();
-Console.WriteLine(same);
+List<Point[]> points = new List<Point[]>();
+
+foreach (var scanner in scanners)
+{
+    foreach (var d in scanner.Distances)
+    {
+        var other = scanners.SelectMany(t => t.Distances).Where(t => t.Value == d.Value).ToList();
+        if (other.Any())
+        {
+            var starts = new[] { d.Start }.Concat(other.Select(t => t.Start)).ToArray();
+            if (starts.All(x => !points.SelectMany(t => t).Contains(x)))
+                points.Add(starts);
+
+            var ends = new[] { d.End }.Concat(other.Select(t => t.End)).ToArray();
+            if (ends.All(x => !points.SelectMany(t => t).Contains(x)))
+                points.Add(ends);
+        }
+        else
+        {
+            if (!points.Any(t => t.Contains(d.Start)))
+                points.Add(new[] { d.Start });
+            if (!points.Any(t => t.Contains(d.End)))
+                points.Add(new[] { d.End });
+        }
+    }
+}
+
+Console.WriteLine("the end!");

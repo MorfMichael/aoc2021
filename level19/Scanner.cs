@@ -1,4 +1,5 @@
 ﻿using System.Security.Authentication.ExtendedProtection;
+using System.Security.Cryptography.X509Certificates;
 
 namespace level19
 {
@@ -7,7 +8,7 @@ namespace level19
         public int Id { get; set; }
 
         public List<Point> Points { get; set; } = new();
-        public List<(Point start, Point end, double distance)> Distances { get; set; } = new();
+        public List<Distance> Distances { get; set; } = new();
 
         public Scanner(string[] lines)
         {
@@ -33,17 +34,33 @@ namespace level19
             {
                 foreach (var end in Points)
                 {
-                    if (start == end || Distances.Any(t => t.start == start && t.end == end || (t.start == end && t.end == start))) continue;
+                    if (start == end || Distances.Any(t => (t.Start == start && t.End == end) || (t.Start == end && t.End == start))) continue;
 
-                    Distances.Add((start, end, start.Distance(end)));
+                    Distances.Add(new Distance(start, end));
                 }
             }
+        }
+
+        public List<(Distance first, Distance second)> CompareDistances(Scanner scanner)
+        {
+            List<(Distance first, Distance second)> result = new List<(Distance first, Distance second)>();
+
+            foreach (var d in Distances)
+            {
+                var other = scanner.Distances.FirstOrDefault(x => x.Value == d.Value);
+                if (other != null)
+                {
+                    result.Add((first: d, second: other));
+                }
+            }
+
+            return result;
         }
 
         public void PrintDistances()
         {
             Console.WriteLine($" --- scanner {Id} --- ");
-            Console.WriteLine(string.Join(Environment.NewLine, Distances.OrderBy(t => t.distance).Select(t => $"{t.distance}")));
+            Console.WriteLine(string.Join(Environment.NewLine, Distances.OrderBy(t => t.Value).Select(t => $"{t.Value}")));
         }
     }
 }
