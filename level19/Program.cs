@@ -31,7 +31,7 @@ foreach (var s1 in scanners)
                 }
             }
 
-            if (b != null && c1 >= 11) b1.Other.Add(b);
+            if (b != null) b1.Other.Add(b);
         }
     }
 }
