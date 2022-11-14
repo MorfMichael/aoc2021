@@ -23,6 +23,8 @@ namespace level19
 
         public Vector3 Position { get; set; }
 
+        public Dictionary<Quaternion, Vector3> Rotated { get; set; } = new Dictionary<Quaternion, Vector3>();
+
         public List<Beacon> Other { get; set; } = new();
 
         public IEnumerable<(double, Vector3, Beacon)> Distances => _distances;
@@ -46,6 +48,5 @@ namespace level19
 
             _distances = distances;
         }
-
     }
 }

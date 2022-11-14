@@ -25,15 +25,27 @@ namespace level19
                     Beacons.Add(new Beacon(this, line));
                 }
             }
-
-            foreach (var b1 in Beacons)
-            {
-                b1.CalculateDistances(Beacons.ToArray());
-            }
         }
 
         public int Id { get; set; }
 
         public List<Beacon> Beacons { get; set; }
+
+        public IEnumerable<Vector3> Rotate(Quaternion rotation)
+        {
+            foreach (var beacon in Beacons)
+            {
+                yield return Vector3.Transform(beacon.Position, rotation);
+            }
+        }
+
+        public void Normalize(Quaternion rotation, Vector3 distance)
+        {
+            foreach (var beacon in Beacons)
+            {
+                beacon.Position = Vector3.Transform(beacon.Position, rotation).Round();
+                beacon.Position = (beacon.Position - distance).Round();
+            }
+        }
     }
 }

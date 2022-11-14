@@ -1,5 +1,7 @@
-﻿using System.Numerics;
+﻿using System.Data;
+using System.Numerics;
 using System.Runtime.InteropServices.ComTypes;
+using System.Xml.Serialization;
 using level19;
 using Microsoft.VisualBasic;
 
@@ -10,31 +12,30 @@ var scanners = lines.Select(t => new Scanner2(t)).ToList();
 
 var beacons = scanners.SelectMany(t => t.Beacons).ToList();
 
-foreach (var s1 in scanners)
+var angles = new[] { (float)(Math.PI/180)*0, (float)(Math.PI / 180) * 90, (float)(Math.PI / 180) * 180, (float)(Math.PI / 180) * 270 };
+
+var rotations = angles.SelectMany(x => angles.SelectMany(y => angles.Select(z => Quaternion.CreateFromYawPitchRoll(y,x,z)))).ToList();
+
+var s1 = scanners[0];
+foreach (var scanner in scanners.Skip(1))
 {
-    foreach (var b1 in s1.Beacons)
+    Dictionary<Vector3, float> bla = new Dictionary<Vector3, float>();
+    foreach (var rotation in rotations)
     {
-        foreach (var s2 in scanners)
+        var points = scanner.Rotate(rotation).ToList();
+        var test = points.Select(t => s1.Beacons.Select(b => (t - b.Position).Round())).ToList();
+
+        var found = test.SelectMany(t => t.Select(x => x)).GroupBy(x => x).FirstOrDefault(t => t.Count() >= 12);
+        if (found != null)
         {
-            if (s1 == s2) continue;
-
-            int c1 = 0;
-            Beacon b = null;
-
-            foreach (var b2 in s2.Beacons)
-            {
-                var tc = b1.Distances.Count(x => b2.Distances.Any(t => t.Item1 == x.Item1));
-                if (tc > c1)
-                {
-                    c1 = tc;
-                    b = b2;
-                }
-            }
-
-            if (b != null) b1.Other.Add(b);
+            var distance = found.Key;
+            scanner.Normalize(rotation, distance);
+            break;
         }
     }
 }
+
+var dots = scanners.SelectMany(t => t.Beacons.Select(x => x.Position)).Distinct().ToList();
 
 List<Beacon> check = new List<Beacon>();
 
