@@ -35,7 +35,7 @@ namespace level19
         {
             foreach (var beacon in Beacons)
             {
-                yield return Vector3.Transform(beacon.Position, rotation);
+                yield return Vector3.Transform(beacon.Position, rotation).Round();
             }
         }
 
