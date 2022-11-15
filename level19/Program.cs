@@ -53,6 +53,8 @@ foreach (var s1 in scanners)
         {
             var points = s2.Rotate(rotation).ToList();
             var rotated = points.Select(t => s1.Beacons.Select(b => (t - b.Position).Round())).ToList();
+            
+
 
             var found = rotated.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
             if (found != null)
