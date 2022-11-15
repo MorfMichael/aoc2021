@@ -16,38 +16,63 @@ var angles = new[] { 0, (float)(Math.PI / 180) * 90, (float)(Math.PI / 180) * 18
 
 List<Quaternion> rotations = new List<Quaternion>();
 
-foreach (var yaw in angles)
+var axis = new List<Vector3>
 {
-    foreach (var pitch in angles)
+    new Vector3(1,0,0),
+    new Vector3(-1,0,0),
+    new Vector3(0,1,0),
+    new Vector3(0,-1,0),
+    new Vector3(0,0,1),
+    new Vector3(0,0,-1),
+};
+
+foreach (var a in axis)
+{
+    foreach (var angle in angles)
     {
-        foreach (var roll in angles)
-        {
-            var quaternion = Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll).Round();
-            if (!rotations.Contains(quaternion)) rotations.Add(quaternion);
-        }
+        rotations.Add(Quaternion.CreateFromAxisAngle(a, angle).Round());
     }
 }
 
-List<(Scanner2 a, Scanner2 b, Vector3 distance, Quaternion rotation)> result = new();
-
+List<(Scanner2 From, Scanner2 To, Quaternion Rotation, Vector3 Transform)> operations = new();
 foreach (var s1 in scanners)
 {
     foreach (var s2 in scanners)
     {
+        if (s1.Id == 1 && s2.Id == 4)
+        {
+
+        }
+
         if (s1 == s2) continue;
+
+        if (operations.Any(t => (t.From == s1 && t.To == s2) || (t.From == s2 && t.To == s1))) continue;
 
         Dictionary<Vector3, float> bla = new Dictionary<Vector3, float>();
         foreach (var rotation in rotations)
         {
             var points = s2.Rotate(rotation).ToList();
-            var test = points.Select(t => s1.Beacons.Select(b => (t - b.Position).Round())).ToList();
+            var rotated = points.Select(t => s1.Beacons.Select(b => (t - b.Position).Round())).ToList();
 
-            var found = test.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
+            var found = rotated.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
             if (found != null)
             {
-                result.Add((s1, s2, found.First(), rotation));
+                operations.Add((s2, s1, rotation, found.First()));
+                Console.WriteLine($"{s2.Id} to {s1.Id}: rotation {rotation}, distance {found.First()}");
+                break;
             }
         }
+    }
+}
+
+foreach (var scanner in scanners)
+{
+    var op = operations.FirstOrDefault(x => x.From == scanner);
+    while (op != default)
+    {
+        Console.WriteLine($"normalize {scanner.Id} adds from {op.From.Id} to { op.To.Id}");
+        scanner.Normalize(op.Rotation, op.Transform);
+        op = operations.FirstOrDefault(x => x.From == op.To);
     }
 }
 
