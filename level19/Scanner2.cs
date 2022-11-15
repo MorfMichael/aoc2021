@@ -31,11 +31,11 @@ namespace level19
 
         public List<Beacon> Beacons { get; set; }
 
-        public IEnumerable<Vector3> Rotate(Quaternion rotation)
+        public IEnumerable<(Vector3 Old, Vector3 New)> Rotate(Quaternion rotation)
         {
             foreach (var beacon in Beacons)
             {
-                yield return Vector3.Transform(beacon.Position, rotation).Round();
+                yield return (Old: beacon.Position, New: Vector3.Transform(beacon.Position, rotation).Round());
             }
         }
 

@@ -39,44 +39,49 @@ foreach (var s1 in scanners)
 {
     foreach (var s2 in scanners)
     {
-        if (s1.Id == 1 && s2.Id == 4)
-        {
-
-        }
-
-        if (s1 == s2) continue;
+        if (s2.Id == 0 || s1 == s2) continue;
 
         if (operations.Any(t => (t.From == s1 && t.To == s2) || (t.From == s2 && t.To == s1))) continue;
 
-        Dictionary<Vector3, float> bla = new Dictionary<Vector3, float>();
-        foreach (var rotation in rotations)
+        foreach (var rotation in rotations.Distinct())
         {
-            var points = s2.Rotate(rotation).ToList();
-            var rotated = points.Select(t => s1.Beacons.Select(b => (t - b.Position).Round())).ToList();
-            
+            var rotated = s2.Rotate(rotation).ToList();
+            var distances = rotated.Select(t => new { t.Old, t.New, Distances = s1.Beacons.Select(b => new { End = b.Position, Distance = (b.Position - t.New).Round() }) }).ToList();
 
+            var distance_length = distances.SelectMany(t => t.Distances.Select(x => x.Distance.Length())).Distinct().ToList();
 
-            var found = rotated.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
-            if (found != null)
+            foreach (var length in distance_length)
             {
-                operations.Add((s2, s1, rotation, found.First()));
-                Console.WriteLine($"{s2.Id} to {s1.Id}: rotation {rotation}, distance {found.First()}");
-                break;
+                var overlapping = distances.Where(t => t.Distances.Any(x => x.Distance.Length() == length)).ToList();
+                if (overlapping.Count >= 12)
+                {
+                    Console.WriteLine($"{s2.Id} to {s1.Id}");
+                    overlapping.ForEach(x => Console.WriteLine($"{x.Old}, {x.New}, {x.Distances.FirstOrDefault(t => t.Distance.Length() == length)?.End}"));
+                }
             }
+
+
+            //var found = rotated.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
+            //if (found != null)
+            //{
+            //    operations.Add((s2, s1, rotation, found.First()));
+            //    Console.WriteLine($"{s2.Id} to {s1.Id}: rotation {rotation}, distance {found.First()}");
+            //    break;
+            //}
         }
     }
 }
 
-foreach (var scanner in scanners)
-{
-    var op = operations.FirstOrDefault(x => x.From == scanner);
-    while (op != default)
-    {
-        Console.WriteLine($"normalize {scanner.Id} adds from {op.From.Id} to { op.To.Id}");
-        scanner.Normalize(op.Rotation, op.Transform);
-        op = operations.FirstOrDefault(x => x.From == op.To);
-    }
-}
+//foreach (var scanner in scanners)
+//{
+//    var op = operations.FirstOrDefault(x => x.From == scanner);
+//    while (op != default)
+//    {
+//        Console.WriteLine($"normalize {scanner.Id} adds from {op.From.Id} to { op.To.Id}");
+//        scanner.Normalize(op.Rotation, op.Transform);
+//        op = operations.FirstOrDefault(x => x.From == op.To);
+//    }
+//}
 
-var dots = scanners.SelectMany(t => t.Beacons.Select(x => x.Position)).Distinct().ToList();
-Console.WriteLine(dots.Count);
+//var dots = scanners.SelectMany(t => t.Beacons.Select(x => x.Position)).Distinct().ToList();
+//Console.WriteLine(dots.Count);
