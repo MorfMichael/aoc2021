@@ -1,7 +1,7 @@
 ﻿string[] lines = File.ReadAllLines("level20.in");
 string source = lines[0];
 lines = lines[2..];
-int iterations = 2;
+int iterations = 50;
 
 char[,] map = new char[lines.Length,lines[0].Length];
 
@@ -16,7 +16,7 @@ for (int y = 0; y < lines.Length; y++)
 for (int i = 0; i < iterations; i++)
 {
     bool on = i % 2 == 1;
-    map = Wrap(map, 2, on);
+    map = Wrap(map, 1, on);
     map = Enhancement(map, on);
 }
 
