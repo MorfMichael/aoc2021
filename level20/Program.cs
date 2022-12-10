@@ -15,8 +15,9 @@ for (int y = 0; y < lines.Length; y++)
 
 for (int i = 0; i < iterations; i++)
 {
-    map = Enhancement(map);
-    map = Wrap(map, 1);
+    bool on = i % 2 == 1;
+    map = Wrap(map, 2, on);
+    map = Enhancement(map, on);
 }
 
 int count = 0;
@@ -30,14 +31,14 @@ for (int y = 0; y < map.GetLength(0); y++)
 
 Console.WriteLine(count);
 
-char[,] Enhancement(char[,] input)
+char[,] Enhancement(char[,] input, bool on)
 {
     char[,] output = new char[input.GetLength(0), input.GetLength(1)];
     for (int y = 0; y < input.GetLength(0); y++)
     {
         for (int x = 0; x < input.GetLength(1); x++)
         {
-            char pixel = GetPixel(x, y, input);
+            char pixel = GetPixel(x, y, input, on);
             output[y, x] = pixel;
         }
     }
@@ -45,7 +46,7 @@ char[,] Enhancement(char[,] input)
     return output;
 }
 
-char GetPixel(int x, int y, char[,] input)
+char GetPixel(int x, int y, char[,] input, bool on)
 {
     List<(int x, int y)> nbs = new()
     {
@@ -60,7 +61,7 @@ char GetPixel(int x, int y, char[,] input)
         if (n.x >= 0 && n.x < input.GetLength(1) && n.y >= 0 && n.y < input.GetLength(0))
             number += input[n.y,n.x] == '#' ? "1": "0";
         else
-            number += "0";
+            number += on ? "1" : "0";
     }
 
     int idx = Convert.ToInt32(number, 2);
@@ -79,7 +80,7 @@ void Print(char[,] map)
     }
 }
 
-char[,] Wrap(char[,] input, int count)
+char[,] Wrap(char[,] input, int count, bool on)
 {
     char[,] output = new char[input.GetLength(0) + count*2, input.GetLength(1) + count*2];
 
@@ -87,7 +88,7 @@ char[,] Wrap(char[,] input, int count)
     {
         for (int x = 0; x < output.GetLength(1); x++)
         {
-            if (x < count || x > (input.GetLength(1)-1+count) || y < count || y > (input.GetLength(0)-1+count)) output[y, x] = '.';
+            if (x < count || x > (input.GetLength(1)-1+count) || y < count || y > (input.GetLength(0)-1+count)) output[y, x] = on ? '#' : '.';
             else output[y, x] = input[y - count, x - count];
         }
     }
