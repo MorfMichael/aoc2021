@@ -11,6 +11,13 @@
     <None Remove="level22.in" />
     <None Remove="sample.in" />
     <None Remove="sample2.in" />
+    <None Remove="sample3.in" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="sample3.in">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
