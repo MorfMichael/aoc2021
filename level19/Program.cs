@@ -1,87 +1,146 @@
 ﻿using System.Data;
 using System.Numerics;
-using System.Runtime.InteropServices.ComTypes;
-using System.Xml.Serialization;
-using level19;
-using Microsoft.VisualBasic;
 
-string input = File.ReadAllText("sample.txt");
-var lines = input.Split("\r\n\r\n").Select(t => t.Split(Environment.NewLine));
+List<string[]> lines = File.ReadAllText("sample.txt").Split("\r\n\r\n").Select(t => t.Split("\r\n")).ToList();
+List<Scanner> scanners = lines.Select(Scanner.Parse).ToList();
 
-var scanners = lines.Select(t => new Scanner2(t)).ToList();
+float pi = (float)Math.PI;
 
-var beacons = scanners.SelectMany(t => t.Beacons).ToList();
+float[] rad = { 0, pi / 2, pi, 3 * pi / 2 };
+(int x, int y, int z)[] vectors = new (int x, int y, int z)[] { (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
+var rotations = rad.SelectMany(r => vectors.Select(v => Quaternion.CreateFromAxisAngle(new Vector3(v.x, v.y, v.z), r))).ToList();
+var rotations2 = rad.SelectMany(yaw => rad.SelectMany(pitch => rad.Select(roll => Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll)))).ToList();
 
-var angles = new[] { 0, (float)(Math.PI / 180) * 90, (float)(Math.PI / 180) * 180, (float)(Math.PI / 180) * 270 };
+HashSet<(int s1, int s2)> scon = new();
+Dictionary<(int s1, int s2), (Vector3 b1, Vector3 b2)[]> overlapping = new();
 
-List<Quaternion> rotations = new List<Quaternion>();
-
-var axis = new List<Vector3>
+foreach (var scanner in scanners)
 {
-    new Vector3(1,0,0),
-    new Vector3(-1,0,0),
-    new Vector3(0,1,0),
-    new Vector3(0,-1,0),
-    new Vector3(0,0,1),
-    new Vector3(0,0,-1),
-};
-
-foreach (var a in axis)
-{
-    foreach (var angle in angles)
+    var checks = scanner.Beacons.SelectMany(t => Check(scanner, t.Value).Select(x => (b1: t.Key, s2: x.scanner.Id, b2: x.beacon))).GroupBy(t => t.s2, t => (t.b1, t.b2)).ToList();
+    foreach (var ch in checks) // overlapping scanner
     {
-        rotations.Add(Quaternion.CreateFromAxisAngle(a, angle).Round());
+        if (!scon.Contains((ch.Key, scanner.Id)))
+            scon.Add((scanner.Id, ch.Key));
+
+        if (!overlapping.ContainsKey((ch.Key, scanner.Id)))
+            overlapping.Add((scanner.Id, ch.Key),ch.ToArray());
     }
 }
 
-List<(Scanner2 From, Scanner2 To, Quaternion Rotation, Vector3 Transform)> operations = new();
-foreach (var s1 in scanners)
+foreach (var scanner in overlapping)
 {
-    foreach (var s2 in scanners)
+    Quaternion rotation = Quaternion.Identity;
+    Vector3 move = Vector3.Zero;
+    foreach (var pair in scanner.Value)
     {
-        if (s2.Id == 0 || s1 == s2) continue;
+        var res = GetRotationAndMove(pair.b1, pair.b2);
+        rotation = res.rotation;
+        move = res.move;
+    }
+}
 
-        if (operations.Any(t => (t.From == s1 && t.To == s2) || (t.From == s2 && t.To == s1))) continue;
 
-        foreach (var rotation in rotations.Distinct())
+Console.WriteLine(string.Join(Environment.NewLine, scon));
+
+var sids = scanners.Select(t => t.Id).OrderByDescending(x => x).ToArray();
+
+List<int[]> ways = new();
+
+foreach (var id in sids)
+{
+    if (!scon.Any(t => t.s1 == id || t.s2 == id))
+    {
+        Console.WriteLine("no connection");
+        continue;
+    }
+
+    var way = Find(id, scon);
+    ways.Add(way);
+
+    Console.WriteLine(string.Join(",", way));
+}
+
+int[] Find(int id, HashSet<(int s1, int s2)> options)
+{
+    List<(int id, int[] way)> Q = new() { (id, new[] { id }) };
+    while (Q.Any())
+    {
+        var c = Q.OrderBy(x => x.way.Length).FirstOrDefault();
+        Q.Remove(c);
+
+        if (c.id == 0) return c.way;
+
+        var op1 = options.Where(t => t.s1 == c.id).ToList();
+        foreach (var o1 in op1)
         {
-            var rotated = s2.Rotate(rotation).ToList();
-            var distances = rotated.Select(t => new { t.Old, t.New, Distances = s1.Beacons.Select(b => new { End = b.Position, Distance = (b.Position - t.New).Round() }) }).ToList();
+            if (c.way.Contains(o1.s2)) continue;
 
-            var distance_length = distances.SelectMany(t => t.Distances.Select(x => x.Distance.Length())).Distinct().ToList();
+            var nway = c.way.Append(o1.s2).ToArray();
+            Q.Add((o1.s2, nway));
+        }
 
-            foreach (var length in distance_length)
-            {
-                var overlapping = distances.Where(t => t.Distances.Any(x => x.Distance.Length() == length)).ToList();
-                if (overlapping.Count >= 12)
-                {
-                    Console.WriteLine($"{s2.Id} to {s1.Id}");
-                    overlapping.ForEach(x => Console.WriteLine($"{x.Old}, {x.New}, {x.Distances.FirstOrDefault(t => t.Distance.Length() == length)?.End}"));
-                }
-            }
+        var op2 = options.Where(t => t.s2 == c.id).ToList();
+        foreach (var o2 in op2)
+        {
+            if (c.way.Contains(o2.s1)) continue;
 
+            var nway = c.way.Append(o2.s1).ToArray();
+            Q.Add((o2.s1, nway));
+        }
+    }
 
-            //var found = rotated.SelectMany(t => t.Select(x => x)).GroupBy(x => x.Length()).FirstOrDefault(t => t.Count() >= 12);
-            //if (found != null)
-            //{
-            //    operations.Add((s2, s1, rotation, found.First()));
-            //    Console.WriteLine($"{s2.Id} to {s1.Id}: rotation {rotation}, distance {found.First()}");
-            //    break;
-            //}
+    return new[] { id };
+}
+
+IEnumerable<(Scanner scanner, Vector3 beacon)> Check(Scanner s, float[] distances)
+{
+    foreach (var scanner in scanners)
+    {
+        if (scanner == s) continue;
+        foreach (var beacon in scanner.Beacons)
+        {
+            if (beacon.Value.Count(x => distances.Contains(x)) >= 11)
+                yield return (scanner, beacon.Key);
         }
     }
 }
 
-//foreach (var scanner in scanners)
-//{
-//    var op = operations.FirstOrDefault(x => x.From == scanner);
-//    while (op != default)
-//    {
-//        Console.WriteLine($"normalize {scanner.Id} adds from {op.From.Id} to { op.To.Id}");
-//        scanner.Normalize(op.Rotation, op.Transform);
-//        op = operations.FirstOrDefault(x => x.From == op.To);
-//    }
-//}
+Vector3 Rotate(Vector3 vector, Quaternion rotation)
+{
+    var v = Vector3.Transform(vector, rotation);
+    return new Vector3(Round(v.X), Round(v.Y), Round(v.Z));
+}
 
-//var dots = scanners.SelectMany(t => t.Beacons.Select(x => x.Position)).Distinct().ToList();
-//Console.WriteLine(dots.Count);
+(Quaternion rotation, Vector3 move) GetRotationAndMove(Vector3 b1, Vector3 b2)
+{
+    var rot = rotations2.Select(t => Vector3.Transform(b2, t)).ToList();
+
+    return (Quaternion.Identity, Vector3.Zero);
+}
+
+float Round(double value, int precision=0) => (float)Math.Round(value, precision);
+Vector3 RoundVector(Vector3 v, int precision = 2) => new Vector3(Round(v.X, precision), Round(v.Y, precision), Round(v.Z, precision));
+
+class Scanner
+{
+    public static Scanner Parse(string[] lines) => new Scanner(lines);
+
+    public Scanner(string[] lines)
+    {
+        Id = int.Parse(lines[0].Replace("---", "").Replace(" scanner ", ""));
+        var l = lines[1..];
+        var beacons = l.Select(t => t.Split(',').Select(int.Parse).ToArray()).Select(t => new Vector3(t[0], t[1], t[2])).ToList();
+
+        foreach (var beacon in beacons)
+        {
+            var distances = beacons.Where(x => x != beacon).Select(t => Vector3.Distance(beacon, t)).OrderBy(t => t).ToArray();
+            Beacons.Add(beacon, distances);
+        }
+    }
+
+    public int Id { get; set; }
+
+    public Dictionary<Vector3, float[]> Beacons { get; set; } = new();
+
+    public Vector3 Position { get; set; }
+}
