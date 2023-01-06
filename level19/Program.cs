@@ -1,15 +1,15 @@
-﻿using System.Data;
+﻿using System.Linq.Expressions;
 using System.Numerics;
 
-List<string[]> lines = File.ReadAllText("sample.txt").Split("\r\n\r\n").Select(t => t.Split("\r\n")).ToList();
+// wrong answers: 499, 478
+
+List<string[]> lines = File.ReadAllText("input.txt").Split("\r\n\r\n").Select(t => t.Split("\r\n")).ToList();
 List<Scanner> scanners = lines.Select(Scanner.Parse).ToList();
 
 float pi = (float)Math.PI;
 
 float[] rad = { 0, pi / 2, pi, 3 * pi / 2 };
-(int x, int y, int z)[] vectors = new (int x, int y, int z)[] { (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
-var rotations = rad.SelectMany(r => vectors.Select(v => Quaternion.CreateFromAxisAngle(new Vector3(v.x, v.y, v.z), r))).ToList();
-var rotations2 = rad.SelectMany(yaw => rad.SelectMany(pitch => rad.Select(roll => Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll)))).ToList();
+var rotations = rad.SelectMany(yaw => rad.SelectMany(pitch => rad.Select(roll => RoundQuaternion(yaw, pitch, roll)))).Distinct().ToList();
 
 HashSet<(int s1, int s2)> scon = new();
 Dictionary<(int s1, int s2), (Vector3 b1, Vector3 b2)[]> overlapping = new();
@@ -23,29 +23,13 @@ foreach (var scanner in scanners)
             scon.Add((scanner.Id, ch.Key));
 
         if (!overlapping.ContainsKey((ch.Key, scanner.Id)))
-            overlapping.Add((scanner.Id, ch.Key),ch.ToArray());
+            overlapping.Add((scanner.Id, ch.Key), ch.ToArray());
     }
 }
-
-foreach (var scanner in overlapping)
-{
-    Quaternion rotation = Quaternion.Identity;
-    Vector3 move = Vector3.Zero;
-    foreach (var pair in scanner.Value)
-    {
-        var res = GetRotationAndMove(pair.b1, pair.b2);
-        rotation = res.rotation;
-        move = res.move;
-    }
-}
-
-
-Console.WriteLine(string.Join(Environment.NewLine, scon));
 
 var sids = scanners.Select(t => t.Id).OrderByDescending(x => x).ToArray();
 
 List<int[]> ways = new();
-
 foreach (var id in sids)
 {
     if (!scon.Any(t => t.s1 == id || t.s2 == id))
@@ -59,6 +43,43 @@ foreach (var id in sids)
 
     Console.WriteLine(string.Join(",", way));
 }
+
+List<HashSet<Vector3>> points = new();
+
+foreach (var scanner in scanners)
+{
+    foreach (var beacon in scanner.Beacons)
+    {
+        if (!points.Any(t => t.Contains(beacon.Key)))
+            points.Add(new() { beacon.Key });
+    }
+}
+
+foreach (var o in overlapping)
+{
+    foreach (var pair in o.Value)
+    {
+        var ex1 = points.Where(t => t.Contains(pair.b1)).Select(t => (Element: pair.b2, List: t)).ToList();
+        var ex2 = points.Where(t => t.Contains(pair.b2)).Select(t => (Element: pair.b1, List: t)).ToList();
+
+        if (ex1.Count == 1 && ex2.Count == 0)
+            ex1[0].List.Add(ex1[0].Element);
+        else if (ex1.Count == 0 && ex2.Count == 1)
+            ex2[0].List.Add(ex2[0].Element);
+        else
+        {
+            ex1.ForEach(l => points.Remove(l.List));
+            ex2.ForEach(l => points.Remove(l.List));
+
+            var merged = ex1.SelectMany(t => t.List).Concat(ex2.SelectMany(t => t.List)).ToHashSet();
+            merged.Add(pair.b1);
+            merged.Add(pair.b2);
+            points.Add(merged);
+        }
+    }
+}
+
+Console.WriteLine(points.Count);
 
 int[] Find(int id, HashSet<(int s1, int s2)> options)
 {
@@ -105,21 +126,13 @@ IEnumerable<(Scanner scanner, Vector3 beacon)> Check(Scanner s, float[] distance
     }
 }
 
-Vector3 Rotate(Vector3 vector, Quaternion rotation)
+float Round(double value, int precision = 0) => (float)Math.Round(value, precision);
+
+Quaternion RoundQuaternion(float yaw, float pitch, float roll)
 {
-    var v = Vector3.Transform(vector, rotation);
-    return new Vector3(Round(v.X), Round(v.Y), Round(v.Z));
+    Quaternion q = Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+    return new Quaternion(Round(q.X, 4), Round(q.Y, 4), Round(q.Z, 4), Round(q.W, 4));
 }
-
-(Quaternion rotation, Vector3 move) GetRotationAndMove(Vector3 b1, Vector3 b2)
-{
-    var rot = rotations2.Select(t => Vector3.Transform(b2, t)).ToList();
-
-    return (Quaternion.Identity, Vector3.Zero);
-}
-
-float Round(double value, int precision=0) => (float)Math.Round(value, precision);
-Vector3 RoundVector(Vector3 v, int precision = 2) => new Vector3(Round(v.X, precision), Round(v.Y, precision), Round(v.Z, precision));
 
 class Scanner
 {
@@ -143,4 +156,19 @@ class Scanner
     public Dictionary<Vector3, float[]> Beacons { get; set; } = new();
 
     public Vector3 Position { get; set; }
+
+    public HashSet<Vector3> Rotated { get; set; }
+
+    float Round(double value, int precision = 0) => (float)Math.Round(value, precision);
+
+    Vector3 Rotate(Vector3 vector, Quaternion rotation)
+    {
+        var v = Vector3.Transform(vector, rotation);
+        return new Vector3(Round(v.X), Round(v.Y), Round(v.Z));
+    }
+
+    public void Rotate(Quaternion q)
+    {
+        var rotated = Beacons.Select(t => Rotate(t.Key,q)).ToList();
+    }
 }
